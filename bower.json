@@ -1,0 +1,15 @@
+{
+    "name": "devoxx-2014-backend",
+    "description": "Backend application for Devoxx 2014",
+    "version": "0.0.1",
+    "main": "index.js",
+    "private": true,
+    "license": "private",
+    "dependencies": {
+    },
+    "ignore": [
+        ".*",
+        "README*",
+        "bower.json"
+    ]
+}
