@@ -4,6 +4,7 @@
 /**
  * Users REST api
  *
+ * @exports UsersRestApi
  * @author Julien Roche
  * @version 1.0
  * @since 1.0
@@ -21,10 +22,10 @@
         restPrefix = '/api',
 
         /**
-         * List of users (simulate a database)
-         * @type {Array<{ id: number, firstName: string, lastName: string, age: number }>}
+         * User schema
+         * @type {UserRepository}
          */
-        users = [ { 'id': 1, 'firstName': 'John', 'lastName': 'Doe', 'age': 25 } ];
+        User = require('../repository/user');
 
 
     /**
@@ -40,19 +41,21 @@
          */
         app.get(restPrefix + '/users/:id', function(req, res) {
             console.log('A request is done on /users/:id on GET with id - ' + req.params.id);
-            var id = parseInt(req.params.id, 10),
-                user = users.filter(function (user) {
-                    return user.id === id;
-                });
 
-            console.log('user:' + JSON.stringify(user));
+            User.findById(req.params.id, function (err, user) {
+                if (err) {
+                    res.send(500);
+                    console.error(err);
 
-            if (user === null || user === undefined || user.length < 1) {
-                res.send(404);
+                } else {
+                    if (user === null || user === undefined) {
+                        res.send(404);
 
-            } else {
-                res.json(user[0]);
-            }
+                    } else {
+                        res.json(user);
+                    }
+                }
+            });
         });
 
         /**
@@ -60,7 +63,21 @@
          */
         app.get(restPrefix + '/users', function(req, res) {
             console.log('A request is done on /users on GET');
-            res.json(users);
+
+            User.find(function (err, users) {
+                    if (err) {
+                        res.send(500);
+                        console.error(err);
+
+                    } else {
+                        if (users === null || users === undefined) {
+                            res.send(404);
+
+                        } else {
+                            res.json(users);
+                        }
+                    }
+                });
         });
 
         /**
@@ -74,25 +91,33 @@
                 return;
             }
 
-            var id = parseInt(req.params.id, 10),
-                userIndex = null;
+            User.findById(req.params.id, function (err, user) {
+                if (err) {
+                    res.send(500);
+                    console.error(err);
 
-            users.every(function (user, index) {
-                if (user.id === id) {
-                    userIndex = index;
-                    return false; // break like
+                } else {
+                    if (user === null || user === undefined) {
+                        res.send(404);
+
+                    } else {
+                        for (var i in req.body) {
+                            //noinspection JSUnfilteredForInLoop
+                            user[i] = req.body[i];
+                        }
+
+                        user.save(function (err, user) {
+                            if (err) {
+                                res.send(500);
+                                console.error(err);
+
+                            } else {
+                                res.json(user);
+                            }
+                        });
+                    }
                 }
-
-                return true;
             });
-
-            if (userIndex === null) {
-                res.send(404);
-
-            } else {
-                users[userIndex] = req.body;
-                res.json(req.body);
-            }
         });
 
         /**
@@ -106,11 +131,16 @@
                 return;
             }
 
-            var user = req.body;
-            user.id = Date.now();
+            var user = new User(req.body);
+            user.save(function (err, user) {
+                if (err) {
+                    res.send(500);
+                    console.error(err);
 
-            users.push(user);
-            res.json(user);
+                } else {
+                    res.json(user);
+                }
+            });
         });
 
         /**
@@ -119,25 +149,28 @@
         app['delete'](restPrefix + '/users/:id', function(req, res) {
             console.log('A request is done on /user on DELETE with id - ' + req.params.id);
 
-            var id = parseInt(req.params.id, 10),
-                userIndex = null;
+            User.findById(req.params.id, function (err, user) {
+                if (err) {
+                    res.send(500);
+                    console.error(err);
 
-            users.every(function (user, index) {
-                if (user.id === id) {
-                    userIndex = index;
-                    return false; // break like
+                } else {
+                    if (user === null || user === undefined) {
+                        res.send(404);
+
+                    } else {
+                        user.remove(function (err) {
+                            if (err) {
+                                res.send(500);
+                                console.error(err);
+
+                            } else {
+                                res.json(200);
+                            }
+                        });
+                    }
                 }
-
-                return true;
             });
-
-            if (userIndex === null) {
-                res.send(404);
-
-            } else {
-                users.splice(userIndex, 1);
-                res.json(200);
-            }
         });
 
         console.log('End of initialization of the User REST api');
