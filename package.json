@@ -5,7 +5,7 @@
     "private": true,
     "scripts": {
         "test": "jasmine-node --junitreport --output target/ test/jasmine-node",
-        "coverage": "istanbul cover ./node_modules/jasmine-node/bin/jasmine-node --junitreport --output target/ test/jasmine-node"
+        "coverage": "istanbul cover --dir target/coverage ./node_modules/jasmine-node/bin/jasmine-node --junitreport --output target/ test/jasmine-node"
     },
     "contributors": [
         {
